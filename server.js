@@ -3,16 +3,14 @@ const WebSocket = require("ws");
 const path = require("path");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// serve frontend
 app.use(express.static(path.join(__dirname, "public")));
 
-const server = app.listen(PORT, () =>
-  console.log("Server running on port", PORT)
-);
+const server = app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});
 
-// websocket server
 const wss = new WebSocket.Server({ server });
 
 const players = {};
@@ -37,7 +35,9 @@ wss.on("connection", ws => {
     }
   });
 
-  ws.on("close", () => delete players[id]);
+  ws.on("close", () => {
+    delete players[id];
+  });
 });
 
 // broadcast loop
@@ -47,10 +47,10 @@ setInterval(() => {
     players
   });
 
-  wss.clients.forEach(c => {
-    if (c.readyState === WebSocket.OPEN) {
-      c.send(snapshot);
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(snapshot);
     }
   });
 }, 50);
-                                              
+    
